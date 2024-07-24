@@ -24,27 +24,28 @@ def segment(img: Image):
     results = yolo(img)
     result = results[0]
     boxes = result.boxes
-    masks = result.masks.data.cpu().numpy()
-    masks = np.moveaxis(masks, 0, -1)
-    masks = scale_image(masks, result.masks.orig_shape)
-    masks = np.moveaxis(masks, -1, 0)
-    for mask, box in zip(masks, boxes):
-        class_id = int(box.cls[0])
-        label = yolo.names[class_id]
-        x1, y1, x2, y2 = box.xyxy[0]
-        colored_mask = (mask*255).astype(np.uint8)
-        colored_mask = Image.fromarray(colored_mask, 'L')
-        cropped_mask = colored_mask.crop((int(x1), int(y1), int(x2), int(y2)))
-        base64_string = pilToBase64(cropped_mask)
-        data.append({
-            "confident": float(box.conf),
-            "box":[
-                int(x1),
-                int(y1),
-                int(x2),
-                int(y2)
-            ],
-            "mask": base64_string,
-            "label": label
-        })
+    if(len(boxes) > 0):
+        masks = result.masks.data.cpu().numpy()
+        masks = np.moveaxis(masks, 0, -1)
+        masks = scale_image(masks, result.masks.orig_shape)
+        masks = np.moveaxis(masks, -1, 0)
+        for mask, box in zip(masks, boxes):
+            class_id = int(box.cls[0])
+            label = yolo.names[class_id]
+            x1, y1, x2, y2 = box.xyxy[0]
+            colored_mask = (mask*255).astype(np.uint8)
+            colored_mask = Image.fromarray(colored_mask, 'L')
+            cropped_mask = colored_mask.crop((int(x1), int(y1), int(x2), int(y2)))
+            base64_string = pilToBase64(cropped_mask)
+            data.append({
+                "confident": float(box.conf),
+                "box":[
+                    int(x1),
+                    int(y1),
+                    int(x2),
+                    int(y2)
+                ],
+                "mask": base64_string,
+                "label": label
+            })
     return data

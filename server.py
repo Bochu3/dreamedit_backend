@@ -26,8 +26,7 @@ async def update_style(url: str):
         "rembg": rembg(image),
         "segment": segment(image)
     }
-    json_data = json.dumps(data)
-    return json_data
+    return data
 
 
 if __name__ == "__main__":

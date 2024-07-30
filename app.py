@@ -1,18 +1,17 @@
 from PIL import Image
 from transparent_background import Remover
 from ultralytics import YOLO
-import io
-import base64
 import numpy as np
 from ultralytics.utils.ops import scale_image
+from spandrel import ModelLoader
+import torch
+from utils import mask_floor, pilToBase64, resize_square, tensor_to_pil, to_torch, undo_resize_square
 remover = Remover()
 yolo = YOLO("yolov8x-seg.pt")
-def pilToBase64(img) -> str:
-  image_bytes = io.BytesIO()
-  img.save(image_bytes, format="webp")
-  image_bytes = image_bytes.getvalue()
-  base64_string = base64.b64encode(image_bytes).decode("utf-8")
-  return base64_string
+lama_file = "./models/big-lama.pt"
+if lama_file.endswith(".pt"):
+    sd = torch.jit.load(lama_file, map_location="cuda").state_dict()
+lama = ModelLoader().load_from_state_dict(sd)
 
 def rembg(img: Image) -> str:
   result = remover.process(img, type='map', threshold=0.7)
@@ -49,3 +48,39 @@ def segment(img: Image):
                 "label": label
             })
     return data
+
+def remove_object(image:Image, mask:Image):
+    image = Image.open('/content/NWFSrLW9PsHSyQ3687uJ_0.png').convert("RGB")
+    image = np.array(image).astype(np.float32) / 255.0
+    image = torch.from_numpy(image)[None,]
+    mask = Image.open('/content/ComfyUI_temp_hahxz_00001_.png').convert("L")
+    mask = np.array(mask).astype(np.float32) / 255.0
+    mask = torch.from_numpy(mask)[None,]
+    if lama.architecture.id == "LaMa":
+        required_size = 256
+    image, mask = to_torch(image, mask)
+    batch_size = 1
+    if mask.shape[0] != batch_size:
+        mask = mask[0].unsqueeze(0).repeat(batch_size, 1, 1, 1)
+
+    image_device = image.device
+    device = "cuda"
+    lama.to(device)
+
+    i=0
+    work_image, work_mask = image[i].unsqueeze(0), mask[i].unsqueeze(0)
+    work_image, work_mask, original_size = resize_square(
+        work_image, work_mask, required_size
+    )
+    work_mask = mask_floor(work_mask)
+
+    torch.manual_seed(0)
+    work_image = lama(work_image.to(device), work_mask.to(device))
+
+
+    work_image.to(image_device)
+    work_image = undo_resize_square(work_image.to(image_device), original_size)
+    work_image = image[i] + (work_image - image[i]) * mask_floor(mask[i])
+    work_image = work_image.permute(0, 2, 3, 1)
+    pil_image = tensor_to_pil(work_image)
+    return pilToBase64(pil_image)

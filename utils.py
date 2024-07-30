@@ -9,7 +9,7 @@ import base64
 def download_model(file_url:str):
     # Define the local file path where the file will be saved
     file_name = file_url.split("/")[-1]
-    local_file_path = f'./models/{file_name}'
+    local_file_path = f'./{file_name}'
     # Check if the file already exists in the local directory
     if not os.path.exists(local_file_path):
         # Download the file
@@ -17,6 +17,7 @@ def download_model(file_url:str):
         # Save the file to the local directory
         with open(local_file_path, "wb") as file:
             file.write(response.content)
+    return local_file_path
 def download_image(url, width=None, height=None)->Image:
     print(f"downloading image {url}")
     image = Image.open(requests.get(url, stream=True, timeout=20).raw,)

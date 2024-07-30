@@ -5,10 +5,10 @@ import numpy as np
 from ultralytics.utils.ops import scale_image
 from spandrel import ModelLoader
 import torch
-from utils import mask_floor, pilToBase64, resize_square, tensor_to_pil, to_torch, undo_resize_square
+from utils import download_model, mask_floor, pilToBase64, resize_square, tensor_to_pil, to_torch, undo_resize_square
 remover = Remover()
 yolo = YOLO("yolov8x-seg.pt")
-lama_file = "./models/big-lama.pt"
+lama_file = download_model("https://github.com/Sanster/models/releases/download/add_big_lama/big-lama.pt")
 if lama_file.endswith(".pt"):
     sd = torch.jit.load(lama_file, map_location="cuda").state_dict()
 lama = ModelLoader().load_from_state_dict(sd)

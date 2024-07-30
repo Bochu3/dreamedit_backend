@@ -5,13 +5,14 @@ import numpy as np
 from ultralytics.utils.ops import scale_image
 from spandrel import ModelLoader
 import torch
-from utils import download_model, mask_floor, pilToBase64, resize_square, tensor_to_pil, to_torch, undo_resize_square
+from utils import binary_dilation, download_model, mask_floor, mask_unsqueeze, pilToBase64, resize_square, tensor_to_pil, to_torch, undo_resize_square
 remover = Remover()
 yolo = YOLO("yolov8x-seg.pt")
 lama_file = download_model("https://github.com/Sanster/models/releases/download/add_big_lama/big-lama.pt")
 if lama_file.endswith(".pt"):
-    sd = torch.jit.load(lama_file, map_location="cuda").state_dict()
+    sd = torch.jit.load(lama_file, map_location="cpu").state_dict()
 lama = ModelLoader().load_from_state_dict(sd)
+lama = lama.eval()
 
 def rembg(img: Image) -> str:
   result = remover.process(img, type='map', threshold=0.7)
@@ -50,12 +51,13 @@ def segment(img: Image):
     return data
 
 def remove_object(image:Image, mask:Image):
-    image = Image.open('/content/NWFSrLW9PsHSyQ3687uJ_0.png').convert("RGB")
     image = np.array(image).astype(np.float32) / 255.0
     image = torch.from_numpy(image)[None,]
-    mask = Image.open('/content/ComfyUI_temp_hahxz_00001_.png').convert("L")
     mask = np.array(mask).astype(np.float32) / 255.0
     mask = torch.from_numpy(mask)[None,]
+    mask = mask_unsqueeze(mask)
+    mask = binary_dilation(mask, 5)
+    mask = mask.squeeze(1)
     if lama.architecture.id == "LaMa":
         required_size = 256
     image, mask = to_torch(image, mask)

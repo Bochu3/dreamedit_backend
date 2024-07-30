@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from PIL import Image
 from app import rembg, remove_object, segment
-from utils import download_image
+# from utils import download_image
 import json
+
 app = FastAPI()
 origins = ["*"]
 
@@ -20,8 +21,9 @@ app.add_middleware(
 def get_hello():
     return {"message": "Hello, World!"}
 
+
 @app.post("/rembg")
-async def rembg(file: UploadFile):
+async def rembg_function(file: UploadFile):
     image = Image.open(file.file).convert("RGB")
     data = {
         "rembg": rembg(image),
@@ -29,7 +31,7 @@ async def rembg(file: UploadFile):
     return data
 
 @app.post("/segment")
-async def segment(file: UploadFile):
+async def segment_function(file: UploadFile):
     image = Image.open(file.file).convert("RGB")
     data = {
         "segment": segment(image)
@@ -37,7 +39,7 @@ async def segment(file: UploadFile):
     return data
 
 @app.post("/remove_object")
-async def update_style(files: List[UploadFile]):
+async def remove_object_function(files: List[UploadFile]):
     image = files[0]
     mask = files[1]
     image = Image.open(image.file).convert("RGB")

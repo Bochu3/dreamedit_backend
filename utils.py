@@ -6,6 +6,7 @@ import numpy as np
 import os
 import io
 import base64
+import torch
 def download_model(file_url:str):
     # Define the local file path where the file will be saved
     file_name = file_url.split("/")[-1]
@@ -103,3 +104,9 @@ def tensor_to_pil(img_tensor, batch_index=0):
   i = 255. * img_tensor.detach().numpy()
   img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8).squeeze())
   return img
+def binary_dilation(mask: Tensor, radius: int):
+    kernel = torch.ones(1, 1, radius * 2 + 1, radius * 2 + 1, device=mask.device)
+    mask = F.pad(mask, (radius, radius, radius, radius), mode="constant", value=0)
+    mask = F.conv2d(mask, kernel, groups=1)
+    mask = (mask > 0).to(mask.dtype)
+    return mask

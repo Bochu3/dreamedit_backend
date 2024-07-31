@@ -34,19 +34,20 @@ async def rembg_function(image:str = Body(..., embed=True)):
     return data
 
 @app.post("/segment")
-async def segment_function(file: UploadFile):
-    image = Image.open(file.file).convert("RGB")
+async def segment_function(image:str = Body(..., embed=True)):
+    image_bytes = base64.b64decode(image)
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     data = {
         "segment": segment(image)
     }
     return data
 
 @app.post("/remove_object")
-async def remove_object_function(files: List[UploadFile]):
-    image = files[0]
-    mask = files[1]
-    image = Image.open(image.file).convert("RGB")
-    mask = Image.open(mask.file).convert("L")
+async def remove_object_function(image: str = Body(..., embed=True), mask: str = Body(..., embed=True)):
+    image_bytes = base64.b64decode(image)
+    mask_bytes = base64.b64decode(mask)
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    mask = Image.open(io.BytesIO(mask_bytes)).convert("L")
     data = {
         "remove_object": remove_object(image, mask)
     }

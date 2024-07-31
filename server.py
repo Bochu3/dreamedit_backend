@@ -1,3 +1,5 @@
+import base64
+import io
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
@@ -23,8 +25,9 @@ def get_hello():
 
 
 @app.post("/rembg")
-async def rembg_function(file: UploadFile):
-    image = Image.open(file.file).convert("RGB")
+async def rembg_function(image:str):
+    image_bytes = base64.b64decode(image)
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     data = {
         "rembg": rembg(image),
     }

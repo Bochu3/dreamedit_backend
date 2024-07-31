@@ -2,7 +2,7 @@ import base64
 import io
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
+from fastapi import Body, Depends, FastAPI, File, Form, Request, UploadFile
 from PIL import Image
 from app import rembg, remove_object, segment
 # from utils import download_image
@@ -25,7 +25,7 @@ def get_hello():
 
 
 @app.post("/rembg")
-async def rembg_function(image:str):
+async def rembg_function(image:str = Body(..., embed=True)):
     image_bytes = base64.b64decode(image)
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     data = {

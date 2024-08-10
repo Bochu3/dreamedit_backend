@@ -56,7 +56,7 @@ def remove_object(image:Image, mask:Image):
     mask = np.array(mask).astype(np.float32) / 255.0
     mask = torch.from_numpy(mask)[None,]
     mask = mask_unsqueeze(mask)
-    mask = binary_dilation(mask, 25)
+    mask = binary_dilation(mask, 15)
     mask = mask.squeeze(1)
     if lama.architecture.id == "LaMa":
         required_size = 256

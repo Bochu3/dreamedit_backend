@@ -47,9 +47,7 @@ async def remove_object_function(image: str = Body(..., embed=True), mask: str =
     image_bytes = base64.b64decode(image)
     mask_bytes = base64.b64decode(mask)
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    mask = Image.open(io.BytesIO(mask_bytes))
-    image.save("image.jpg")
-    mask.save("mask.png")
+    mask = Image.open(io.BytesIO(mask_bytes)).convert("L")
     data = {
         "remove_object": remove_object(image, mask)
     }

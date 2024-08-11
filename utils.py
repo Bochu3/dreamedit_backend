@@ -30,7 +30,7 @@ def download_image(url, width=None, height=None)->Image:
     return image.resize((width,height), Image.Resampling.LANCZOS)
 def pilToBase64(img) -> str:
   image_bytes = io.BytesIO()
-  img.save(image_bytes, format='WebP', optimize=True, quality=90, lossless=False)
+  img.save(image_bytes, format='WebP', optimize=True, quality=95, lossless=False)
   image_bytes = image_bytes.getvalue()
   base64_string = base64.b64encode(image_bytes).decode("utf-8")
   return base64_string
